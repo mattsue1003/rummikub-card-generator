@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拉密牌卡生成器 Rummikub Card Generator</title>
+<style>
+  :root{
+    --card-w: 63mm;
+    --card-h: 88mm;
+    --gap: 2mm;
+    --page-margin: 8mm;
+    --radius: 3mm;
+  }
+  *{box-sizing:border-box}
+  body{
+    font-family: -apple-system, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    margin:0; background:#f0f2f5; color:#222;
+  }
+  header{
+    background:#1a237e; color:#fff; padding:14px 20px;
+    position:sticky; top:0; z-index:10;
+  }
+  header h1{margin:0; font-size:20px}
+  header p{margin:4px 0 0; font-size:13px; opacity:.85}
+  .layout{display:flex; gap:16px; padding:16px; max-width:1400px; margin:0 auto; align-items:flex-start}
+  .panel{
+    width:320px; flex-shrink:0; background:#fff; border-radius:12px; padding:16px;
+    box-shadow:0 2px 12px rgba(0,0,0,.08); position:sticky; top:76px;
+    max-height:calc(100vh - 90px); overflow:auto;
+  }
+  .panel h2{font-size:15px; margin:16px 0 8px; border-left:4px solid #1a237e; padding-left:8px}
+  .panel h2:first-child{margin-top:0}
+  label.row{display:flex; align-items:center; justify-content:space-between; font-size:13px; margin:8px 0; gap:8px}
+  input[type=number]{width:80px; padding:4px 6px}
+  input[type=color]{width:36px; height:26px; padding:0; border:none; background:none}
+  input[type=text]{width:110px; padding:4px 6px}
+  select{padding:4px 6px}
+  .btn{
+    display:block; width:100%; padding:10px; margin:8px 0; border:none; border-radius:8px;
+    font-size:15px; font-weight:700; cursor:pointer;
+  }
+  .btn-primary{background:#1a237e; color:#fff}
+  .btn-green{background:#2e7d32; color:#fff}
+  .btn-gray{background:#ececec; color:#333}
+  .hint{font-size:12px; color:#555; line-height:1.7; background:#fffde7; border:1px solid #ffe082; border-radius:8px; padding:8px 10px}
+  .preview{flex:1}
+  .page-sheet{
+    width:210mm; max-width:100%; aspect-ratio:210/297; background:#fff;
+    margin:0 auto 20px; padding:var(--page-margin);
+    box-shadow:0 2px 16px rgba(0,0,0,.18);
+    display:flex; flex-wrap:wrap; align-content:flex-start;
+    gap:var(--gap);
+    position:relative; overflow:hidden;
+  }
+  /* 縮放預覽：螢幕上縮小，列印時 1:1 */
+  .preview .page-sheet{ transform-origin:top center; }
+  .card{
+    width:var(--card-w); height:var(--card-h);
+    max-width:calc((100% - var(--gap)*2)/3);
+    background:#fff; border:.4mm solid #333; border-radius:var(--radius);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    position:relative; overflow:hidden;
+  }
+  /* 預覽時用 px 近似，列印時用 mm 精確 — 以下 print 區會覆蓋 */
+  @media screen{
+    .page-sheet{ padding:24px; }
+    .card{ width:30%; aspect-ratio:63/88; height:auto; }
+  }
+  .card .corner{position:absolute; font-weight:800; line-height:1; display:flex; flex-direction:column; align-items:center}
+  .corner.tl{top:2.2mm; left:2.5mm; font-size:5.5mm}
+  .corner.br{bottom:2.2mm; right:2.5mm; font-size:5.5mm; transform:rotate(180deg)}
+  .card .num{font-family:"Arial Black", Arial, sans-serif; font-weight:900; font-size:17mm; line-height:1;
+    text-shadow:0 0 2mm #fff, 0 0 2mm #fff, 0 0 2mm #fff}
+  .card .bg{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    max-width:90%; max-height:64%; opacity:var(--bg-opacity,.5); pointer-events:none}
+  .card .num, .card .corner, .card .sub{position:relative; z-index:1}
+  .card .sub{font-size:3.6mm; margin-top:1.5mm; letter-spacing:.5mm; opacity:.75; font-weight:700}
+  .card.joker{background:linear-gradient(135deg,#fff 0%,#fff8e1 100%); border-color:#6a1b9a; border-width:.6mm}
+  .card.joker .num{font-size:11mm}
+  .card.joker .star{font-size:12mm; line-height:1}
+  .card-back{
+    background:
+      repeating-linear-gradient(45deg,#1a237e 0 4mm,#283593 4mm 8mm);
+    color:#fff; border-color:#1a237e;
+  }
+  .card-back .inner{
+    border:.6mm dashed rgba(255,255,255,.9); border-radius:2mm;
+    width:86%; height:90%; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:2mm; text-align:center;
+  }
+  .page-label{font-size:12px; color:#888; text-align:center; margin:-12px 0 16px}
+
+  /* ===== 列印：精確 mm ===== */
+  @media print{
+    header, .panel, .toolbar, .page-label, .no-print{display:none !important}
+    body{background:#fff; margin:0}
+    .layout{display:block; padding:0; max-width:none}
+    .preview{width:auto}
+    .page-sheet{
+      width:210mm; height:296.5mm; max-width:none; aspect-ratio:auto;
+      margin:0; padding:var(--page-margin); box-shadow:none; border:none;
+      gap:var(--gap); page-break-after:always; break-after:page;
+    }
+    .page-sheet:last-child{page-break-after:auto}
+    .card{
+      width:var(--card-w); height:var(--card-h); max-width:none;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    }
+    .card.cutlines{outline:.25mm dashed #999; outline-offset:0}
+    @page{ size:A4; margin:0; }
+  }
+  .toolbar{background:#fff; border-radius:12px; padding:10px 14px; margin-bottom:12px; box-shadow:0 2px 12px rgba(0,0,0,.08); font-size:13px}
+</style>
+</head>
+<body>
+<header class="no-print">
+  <h1>🀄 拉密牌卡生成器 Rummikub Generator</h1>
+  <p>完整 106 張（紅藍黃黑 1–13 各兩副 + 2 百搭）｜ 63 × 88 mm ｜ A4 列印裁剪用</p>
+</header>
+
+<div class="layout">
+  <div class="panel no-print">
+    <h2>⚙️ 基本設定</h2>
+    <label class="row">牌寬 (mm) <input type="number" id="cardW" value="63" min="30" max="70" step="0.5"></label>
+    <label class="row">牌高 (mm) <input type="number" id="cardH" value="88" min="40" max="100" step="0.5"></label>
+    <label class="row">間距 (mm) <input type="number" id="gap" value="2" min="0" max="10" step="0.5"></label>
+    <label class="row">頁面邊界 (mm) <input type="number" id="margin" value="8" min="3" max="20" step="0.5"></label>
+    <label class="row">圓角 (mm) <input type="number" id="radius" value="3" min="0" max="8" step="0.5"></label>
+
+    <h2>🎨 顏色</h2>
+    <label class="row">紅 <input type="color" id="cRed" value="#d32f2f"></label>
+    <label class="row">藍 <input type="color" id="cBlue" value="#1565c0"></label>
+    <label class="row">黃/橘 <input type="color" id="cYellow" value="#ef8e00"></label>
+    <label class="row">黑 <input type="color" id="cBlack" value="#212121"></label>
+
+    <h2>🃏 內容</h2>
+    <label class="row">套數
+      <select id="sets">
+        <option value="2" selected>完整 2 副 + 2 百搭 (106張)</option>
+        <option value="1">入門 1 副 + 1 百搭 (53張)</option>
+      </select>
+    </label>
+    <label class="row">百搭文字 <input type="text" id="jokerText" value="JOKER 百搭"></label>
+    <label class="row"><span>角落小數字</span> <input type="checkbox" id="showCorner" checked></label>
+    <label class="row"><span>裁切虛線</span> <input type="checkbox" id="showCut" checked></label>
+    <label class="row"><span>可愛貓狗底圖</span> <input type="checkbox" id="showBg" checked></label>
+    <label class="row">底圖透明度 <span><input type="range" id="bgOpacity" min="10" max="100" value="50" style="width:90px"> <b id="bgOpacityVal">50%</b></span></label>
+    <label class="row"><span>附印卡背頁</span> <input type="checkbox" id="showBack"></label>
+    <label class="row">卡背文字 <input type="text" id="backText" value="RUMMIKUB 拉密"></label>
+
+    <button class="btn btn-primary" onclick="render()">🔄 重新生成預覽</button>
+    <button class="btn btn-green" onclick="window.print()">🖨️ 列印 / 存成 PDF</button>
+    <button class="btn btn-gray" onclick="resetDefault()">↩️ 恢復預設</button>
+
+    <h2>📋 使用說明</h2>
+    <div class="hint">
+      1. 按 <b>列印 / 存成 PDF</b><br>
+      2. 目的地選 <b>另存為 PDF</b><br>
+      3. 紙張 <b>A4</b>、邊界選 <b>無</b>、勾選 <b>背景圖形</b><br>
+      4. 比例 <b>100%（實際大小）</b><br>
+      5. 存檔後用裁紙刀沿線裁剪，建議 250 磅以上紙或護貝。<br><br>
+      💡 3 欄 × 3 排 = 每頁 9 張，106 張共 12 頁。
+    </div>
+  </div>
+
+  <div class="preview">
+    <div class="toolbar no-print" id="statBar">準備就緒</div>
+    <div id="pages"></div>
+  </div>
+</div>
+
+<script>
+const COLORS = () => ({
+  red: document.getElementById('cRed').value,
+  blue: document.getElementById('cBlue').value,
+  yellow: document.getElementById('cYellow').value,
+  black: document.getElementById('cBlack').value,
+});
+
+function buildDeck(){
+  const sets = parseInt(document.getElementById('sets').value, 10);
+  const deck = [];
+  const colorKeys = ['red','blue','yellow','black'];
+  for(let s=0; s<sets; s++){
+    for(const c of colorKeys){
+      for(let n=1; n<=13; n++) deck.push({type:'num', num:n, color:c});
+    }
+  }
+  const jokers = sets === 2 ? 2 : 1;
+  for(let i=0;i<jokers;i++) deck.push({type:'joker'});
+  // 排序：顏色 → 數字，百搭最後（好對照檢查缺牌）
+  const order = {red:0, blue:1, yellow:2, black:3};
+  deck.sort((a,b)=>{
+    if(a.type!==b.type) return a.type==='num' ? -1 : 1;
+    if(a.type==='joker') return 0;
+    return order[a.color]-order[b.color] || a.num-b.num;
+  });
+  return deck;
+}
+
+const BG_IMG = {
+  red: 'assets/cat_cartoon.svg',   // 紅：圓滾滾小黃貓（OpenClipart CC0, anarres）
+  blue: 'assets/dog_cartoon.svg',  // 藍：棕色小狗（OpenClipart 公有領域, creozavr）
+  yellow: 'assets/cat_draw.jpg',   // 黃：灰色小貓手繪（Wikimedia Commons, Jan Gillbank）
+  black: 'assets/dog_draw.jpg',    // 黑：微笑大狗手繪（Wikimedia Commons, Jan Gillbank）
+};
+
+function cardHTML(card){
+  const colors = COLORS();
+  const showCorner = document.getElementById('showCorner').checked;
+  const showCut = document.getElementById('showCut').checked;
+  const showBg = document.getElementById('showBg').checked;
+  const jokerText = document.getElementById('jokerText').value || 'JOKER';
+  if(card.type==='joker'){
+    return `<div class="card joker ${showCut?'cutlines':''}">
+      <div class="star">🃏</div>
+      <div class="num" style="color:#6a1b9a; font-size:9mm">★</div>
+      <div class="sub" style="color:#6a1b9a">${escapeHtml(jokerText)}</div>
+    </div>`;
+  }
+  const col = colors[card.color];
+  const bg = showBg ? `<img class="bg" src="${BG_IMG[card.color]}" alt="">` : '';
+  const corner = showCorner
+    ? `<div class="corner tl" style="color:${col}">${card.num}</div>
+       <div class="corner br" style="color:${col}">${card.num}</div>` : '';
+  return `<div class="card ${showCut?'cutlines':''}">
+    ${bg}${corner}
+    <div class="num" style="color:${col}">${card.num}</div>
+    <div class="sub" style="color:${col}">RUMMIKUB</div>
+  </div>`;
+}
+
+function backHTML(){
+  const t = document.getElementById('backText').value || 'RUMMIKUB';
+  const showCut = document.getElementById('showCut').checked;
+  return `<div class="card card-back ${showCut?'cutlines':''}">
+    <div class="inner"><div style="font-size:7mm">🀄</div>
+    <div style="font-weight:900; font-size:4.5mm">${escapeHtml(t)}</div>
+    <div style="font-size:3mm; opacity:.85">63 × 88 mm</div></div>
+  </div>`;
+}
+
+function escapeHtml(s){return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+function render(){
+  const w = parseFloat(document.getElementById('cardW').value)||63;
+  const h = parseFloat(document.getElementById('cardH').value)||88;
+  const gap = parseFloat(document.getElementById('gap').value)||2;
+  const margin = parseFloat(document.getElementById('margin').value)||8;
+  const radius = parseFloat(document.getElementById('radius').value)||3;
+  const bgOp = parseInt(document.getElementById('bgOpacity').value, 10)||50;
+  document.getElementById('bgOpacityVal').textContent = bgOp + '%';
+  const root = document.documentElement.style;
+  root.setProperty('--card-w', w+'mm');
+  root.setProperty('--card-h', h+'mm');
+  root.setProperty('--gap', gap+'mm');
+  root.setProperty('--page-margin', margin+'mm');
+  root.setProperty('--radius', radius+'mm');
+  root.setProperty('--bg-opacity', (bgOp/100).toFixed(2));
+
+  // 計算每頁張數（A4 210x297）
+  const cols = Math.max(1, Math.floor((210 - margin*2 + gap) / (w + gap)));
+  const rows = Math.max(1, Math.floor((297 - margin*2 + gap) / (h + gap)));
+  const perPage = cols * rows;
+
+  const deck = buildDeck();
+  const pagesEl = document.getElementById('pages');
+  pagesEl.innerHTML = '';
+  const totalPages = Math.ceil(deck.length / perPage);
+  for(let p=0; p<totalPages; p++){
+    const div = document.createElement('div');
+    div.className = 'page-sheet';
+    div.innerHTML = deck.slice(p*perPage,(p+1)*perPage).map(cardHTML).join('');
+    pagesEl.appendChild(div);
+    const lab = document.createElement('div');
+    lab.className = 'page-label no-print';
+    lab.textContent = `第 ${p+1} / ${totalPages} 頁（${div.children.length} 張）`;
+    pagesEl.appendChild(lab);
+  }
+
+  if(document.getElementById('showBack').checked){
+    // 卡背頁：同樣排滿，方便雙面列印對位
+    const nBack = perPage; // 一頁滿版卡背
+    const div = document.createElement('div');
+    div.className = 'page-sheet';
+    div.innerHTML = Array.from({length:nBack}, backHTML).join('');
+    pagesEl.appendChild(div);
+    const lab = document.createElement('div');
+    lab.className = 'page-label no-print';
+    lab.textContent = `卡背頁（雙面列印用，印在厚紙背面）`;
+    pagesEl.appendChild(lab);
+  }
+
+  document.getElementById('statBar').innerHTML =
+    `共 <b>${deck.length}</b> 張 ｜ 每頁 <b>${perPage}</b> 張（${cols}×${rows}）｜ 共 <b>${totalPages}</b> 頁 ｜ 列印請用 A4、邊界「無」、100%`;
+}
+
+function resetDefault(){
+  document.getElementById('cardW').value = 63;
+  document.getElementById('cardH').value = 88;
+  document.getElementById('gap').value = 2;
+  document.getElementById('margin').value = 8;
+  document.getElementById('radius').value = 3;
+  document.getElementById('cRed').value = '#d32f2f';
+  document.getElementById('cBlue').value = '#1565c0';
+  document.getElementById('cYellow').value = '#ef8e00';
+  document.getElementById('cBlack').value = '#212121';
+  document.getElementById('sets').value = '2';
+  document.getElementById('showCorner').checked = true;
+  document.getElementById('showCut').checked = true;
+  document.getElementById('showBg').checked = true;
+  document.getElementById('bgOpacity').value = 50;
+  document.getElementById('showBack').checked = false;
+  render();
+}
+
+['cardW','cardH','gap','margin','radius','cRed','cBlue','cYellow','cBlack','sets','jokerText','backText','showCorner','showCut','showBack','showBg','bgOpacity']
+  .forEach(id=>document.getElementById(id).addEventListener('input', render));
+
+render();
+</script>
+</body>
+</html>

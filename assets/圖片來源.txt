@@ -1,0 +1,19 @@
+拉密牌卡底圖來源（個人桌遊自用列印，圖檔放在 assets/）
+
+1. 紅牌底圖：assets/cat_cartoon.svg（原始檔）/ bg_red_cat.png（淡化版）
+   圓滾滾小黃貓卡通，OpenClipart，作者 anarres，CC0 公有領域
+   https://openclipart.org/detail/292277/cute-cat
+
+2. 藍牌底圖：assets/dog_cartoon.svg（原始檔）/ bg_blue_dog.png（淡化版）
+   棕色小狗卡通，OpenClipart，作者 hund（原 Pixabay 用戶 creozavr，2019 年前上傳），公有領域
+   https://openclipart.org/detail/330305/cartoon-puppy
+
+3. 黃牌底圖：assets/cat_draw.jpg（原始檔）/ bg_yellow_cat.jpg（淡化版）
+   灰色小貓手繪，作者 Jan Gillbank（English for the Australian Curriculum 網站），Wikimedia Commons 免費授權
+   https://commons.wikimedia.org/wiki/File:Cat_illustration.jpg
+
+4. 黑牌底圖：assets/dog_draw.jpg（原始檔）/ bg_black_dog.jpg（淡化版）
+   微笑大狗手繪，作者 Jan Gillbank（English for the Australian Curriculum 網站），Wikimedia Commons 免費授權
+   https://commons.wikimedia.org/wiki/File:Dog_illustration.jpg
+
+備註：bg_* 為以白色 50% 淡化後的列印用版本；SVG 原始檔僅供螢幕預覽。
