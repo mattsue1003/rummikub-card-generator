@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<!-- based on old-song-guess, pop edition. saved from url=(0245)https://mattsue1003.github.io/old-song-guess/?fbclid=IwY2xjawUTNLFwZG9mAWV4dG4DYWVtAjEwAGJyaWQRMWFBeUNpbGFUN3FtMmhsSzRzcnRjBmFwcF9pZBAyMjIwMzkxNzg4MjAwODkyAAEei3DLTZuDvwsToRsq0nKuUX4xqHeFOdotS1DmXLxva4syfsM9GnD4xLAxbK8_aem_16TCpOWqxnc68QF5Q7v7UQ -->
+<html lang="zh-Hant"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>流行金曲猜歌 · 20 題華語經典</title>
+<style>
+:root{--orange:#E8552D;--amber:#F4A93C;--teal:#028090;--ink:#12343B;
+--cream:#FDF7EE;--line:#E7DCC9;--muted:#6B7A80}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--cream);color:var(--ink);
+font-family:"Microsoft JhengHei","微軟正黑體","PingFang TC","Noto Sans TC",system-ui,sans-serif;
+font-size:19px;line-height:1.6}
+body.playing{overflow:hidden}
+button{font-family:inherit}
+
+#v-game{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--cream);z-index:40}
+#v-game.hidden{display:none}
+.gtop{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 16px;
+background:linear-gradient(135deg,var(--ink),var(--teal));color:#fff;flex:0 0 auto}
+.gscore{font-size:20px;font-weight:800;white-space:nowrap}
+.gbar{flex:1 1 auto;height:10px;background:rgba(255,255,255,.2);border-radius:99px;overflow:hidden;min-width:70px}
+.gbar i{display:block;height:100%;background:var(--amber);border-radius:99px;transition:width .3s}
+.gtools{display:flex;gap:6px}
+.gtools button{border:2px solid rgba(255,255,255,.35);background:transparent;color:#fff;
+border-radius:10px;padding:5px 12px;font-size:15px;cursor:pointer;white-space:nowrap}
+.gtools button:hover{background:rgba(255,255,255,.15)}
+
+.gmain{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:minmax(0,44%) minmax(0,56%);
+gap:16px;padding:16px}
+.clue{min-height:0;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:20px;
+padding:20px 22px;display:flex;flex-direction:column;gap:14px}
+.badges{display:flex;gap:8px;flex-wrap:wrap}
+.bdg{border-radius:999px;padding:5px 15px;font-size:16px;font-weight:800}
+.bdg.cat{background:#E4F2F3;color:#046A73}
+.bdg.yr{background:#FDECD8;color:#9A5B12}
+.clue h2{margin:0;font-size:clamp(20px,2vw,26px);line-height:1.5;font-weight:800}
+
+.clue.solo{justify-content:center}
+.clue.solo .player{margin-top:0}
+.player{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:12px;
+background:#FBF5EA;border:2px solid var(--line);border-radius:18px;padding:18px 16px}
+.play{width:clamp(96px,11vw,132px);height:clamp(96px,11vw,132px);border-radius:50%;border:0;
+background:var(--orange);color:#fff;font-size:clamp(38px,4.4vw,52px);cursor:pointer;
+box-shadow:0 10px 26px rgba(232,85,45,.4);display:flex;align-items:center;justify-content:center;
+transition:transform .1s}
+.play:hover{transform:scale(1.04)}
+.play:active{transform:scale(.96)}
+.play[disabled]{background:#C9BCA8;box-shadow:none;cursor:default}
+.play.on{background:var(--teal);box-shadow:0 10px 26px rgba(2,128,144,.4)}
+.plabel{font-size:clamp(17px,1.7vw,21px);font-weight:800}
+.pbar{width:100%;max-width:330px;height:9px;background:#E7DCC9;border-radius:99px;overflow:hidden}
+.pbar i{display:block;height:100%;width:0;background:var(--teal);border-radius:99px}
+.popts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center}
+.pchip{border:2px solid var(--line);background:#fff;border-radius:999px;padding:5px 14px;
+font-size:15px;font-weight:700;cursor:pointer;color:var(--ink)}
+.pchip.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.hidden{display:none!important}
+.phold{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;align-items:center;
+justify-content:center;gap:14px;text-align:center;background:#fff;border:3px dashed var(--line);
+border-radius:18px;padding:20px;color:#6B7A80}
+.phold .em{font-size:clamp(38px,4.6vw,62px);line-height:1}
+.phold .t1{font-size:clamp(22px,2.4vw,32px);font-weight:900;color:var(--ink);line-height:1.4}
+.phold .t2{font-size:clamp(15px,1.5vw,19px);line-height:1.6}
+.btn.hint{background:var(--amber);color:#3A2400}
+.btn.shout{background:#1F9D55;margin-top:6px;font-size:clamp(17px,1.8vw,22px);padding:14px 28px}
+.btn.hint[disabled]{background:#EDE3D2;color:#9C9280;cursor:default}
+.banner{position:fixed;top:0;left:0;right:0;z-index:120;background:#B03A28;color:#fff;
+padding:12px 46px 12px 18px;font-size:16px;font-weight:700;line-height:1.5}
+.banner.hidden{display:none}
+.banner b{background:#fff;color:#B03A28;padding:1px 8px;border-radius:6px}
+.banner button{position:absolute;top:8px;right:10px;background:transparent;border:0;color:#fff;
+font-size:20px;cursor:pointer}
+body.hasbanner #v-game{top:56px}
+.filebox{border:2px dashed var(--line);border-radius:14px;padding:18px;text-align:center;background:#FBF5EA}
+.filebox input{font-size:16px}
+.matchlist{margin-top:12px;font-size:15px;max-height:230px;overflow:auto}
+.matchlist div{padding:4px 0;border-bottom:1px solid #F0E7D8}
+.matchlist .y{color:#1F7A45;font-weight:700}
+.matchlist .n{color:var(--muted)}
+.vol{display:flex;align-items:center;gap:9px;width:100%;max-width:300px}
+.vol input{flex:1;accent-color:var(--teal);height:22px}
+.vol span{font-size:17px}
+.diag{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;line-height:1.8;
+background:#F7F2E8;border-radius:12px;padding:14px 16px;white-space:pre-wrap;word-break:break-all}
+.diag .ok{color:#1F7A45;font-weight:700}
+.diag .no{color:#B03A28;font-weight:700}
+.pnote{font-size:14px;color:var(--muted);text-align:center;line-height:1.5}
+.pnote a{color:var(--teal)}
+
+.gside{min-height:0;display:flex;flex-direction:column;gap:12px}
+.opts{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:14px;flex:1 1 auto;min-height:0}
+.opt{padding:10px 8px;font-size:clamp(23px,3vw,44px);font-weight:800;border:4px solid var(--line);
+background:#fff;border-radius:18px;cursor:pointer;color:var(--ink);display:flex;align-items:center;
+justify-content:center;text-align:center;line-height:1.2;transition:transform .08s,border-color .12s}
+.opt:active{transform:scale(.97)}
+.opt:hover{border-color:var(--amber)}
+.opt.good{background:#1F9D55;border-color:#1F9D55;color:#fff}
+.opt.bad{background:#C0392B;border-color:#C0392B;color:#fff}
+.grow{display:flex;gap:12px;justify-content:flex-end;flex:0 0 auto}
+.btn{background:var(--orange);color:#fff;border:0;border-radius:12px;padding:13px 26px;
+font-size:19px;font-weight:800;cursor:pointer}
+.btn.ghost{background:#fff;color:var(--ink);border:2px solid var(--line)}
+
+.modal{position:fixed;inset:0;z-index:90;background:rgba(18,52,59,.62);display:flex;
+align-items:center;justify-content:center;padding:20px;animation:fade .18s ease}
+.modal.hidden{display:none}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{transform:translateY(18px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+.mcard{background:#fff;border-radius:22px;width:min(690px,100%);max-height:90vh;display:flex;
+flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.35);animation:pop .22s cubic-bezier(.2,.9,.3,1);
+position:relative;overflow:hidden}
+.mclose{position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:50%;border:0;
+background:rgba(255,255,255,.85);font-size:20px;cursor:pointer;color:var(--ink);z-index:2}
+.mtop{padding:18px 22px 14px;background:linear-gradient(135deg,#FFF3E2,#FFE8CC);flex:0 0 auto}
+.mres{font-size:15px;font-weight:800;margin-bottom:2px}
+.mres.ok{color:#1F7A45}.mres.no{color:#B03A28}
+.mcard h2{margin:0;font-size:clamp(28px,4vw,42px);color:var(--orange);line-height:1.15}
+.mcard .sub{font-size:17px;color:#5C6E73;margin-top:5px;font-weight:700}
+.mbody{padding:16px 22px 16px;overflow:auto;flex:1 1 auto;min-height:0}
+.feat{counter-reset:f;list-style:none;padding:0;margin:0 0 14px}
+.feat li{counter-increment:f;position:relative;padding:9px 12px 9px 50px;font-size:clamp(17px,1.5vw,20px);
+background:#FBF5EA;border-radius:11px;margin-bottom:8px}
+.feat li::before{content:counter(f);position:absolute;left:11px;top:9px;width:29px;height:29px;
+background:var(--teal);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;
+font-weight:800;font-size:17px}
+.talk{background:#FFF0D9;border-left:8px solid var(--amber);border-radius:10px;padding:12px 15px;margin-bottom:14px}
+.talk b{display:block;font-size:14px;color:#9A5B12;margin-bottom:3px}
+.talk p{margin:0;font-size:clamp(18px,1.7vw,22px);font-weight:700}
+.search{display:flex;gap:9px;flex-wrap:wrap}
+.sbtn{display:inline-flex;align-items:center;gap:7px;text-decoration:none;border-radius:11px;
+padding:11px 17px;font-size:17px;font-weight:800;border:2px solid transparent;white-space:nowrap;cursor:pointer}
+.s-p{background:var(--teal);color:#fff;border:0}
+.s-y{background:#FF0033;color:#fff}
+.s-w{background:#fff;color:var(--ink);border-color:var(--line)}
+.mfoot{padding:12px 22px 18px;flex:0 0 auto;display:flex;justify-content:flex-end;gap:10px;border-top:1px solid var(--line)}
+.done{text-align:center;padding:10px}
+.done .big{font-size:64px;font-weight:900;color:var(--orange);line-height:1.1}
+
+@media(max-width:900px){
+  .gtop{padding:7px 10px;gap:7px}
+  .gscore{font-size:16px}
+  .gtools button{padding:4px 9px;font-size:14px}
+  .gmain{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);gap:10px;padding:10px}
+  .clue{padding:13px 15px;gap:9px;max-height:52vh}
+  .player{padding:12px 10px;gap:8px}
+  .play{width:78px;height:78px;font-size:32px}
+  .opts{gap:10px}
+  .opt{font-size:clamp(19px,5.2vw,26px);border-width:3px;border-radius:15px}
+  .grow .btn{padding:11px 20px;font-size:17px}
+  .modal{padding:10px}.mcard{max-height:94vh}
+  .mtop{padding:14px 16px 10px}.mbody{padding:13px 16px 12px}.mfoot{padding:10px 16px 14px}
+}
+
+.page{max-width:1100px;margin:0 auto;padding:18px}
+.page.hidden{display:none}
+.topbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.tab{border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;
+padding:10px 22px;font-size:18px;font-weight:700;cursor:pointer}
+.tab.on{background:var(--orange);border-color:var(--orange);color:#fff}
+.note{background:#FFF6E5;border:1px solid var(--amber);border-radius:12px;padding:13px 16px;font-size:16px;margin-bottom:16px}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden}
+th,td{padding:11px 13px;text-align:left;border-bottom:1px solid var(--line);font-size:16px;vertical-align:top}
+th{background:#F4EDE1;font-size:15px}
+td .sbtn{padding:5px 10px;font-size:13px;border-radius:8px}
+</style>
+<link href="./流行金曲猜歌 · 20 題華語經典_files/css2" rel="stylesheet"></head>
+<body class="playing">
+
+<div id="banner" class="banner hidden"></div>
+
+<section id="v-game">
+  <div class="gtop">
+    <div class="gscore" id="score">第 1 / 20 題 · 答對 0</div>
+    <div class="gbar"><i id="bar" style="width: 0%;"></i></div>
+    <div class="gtools">
+      <button id="fs">⛶ 全螢幕</button>
+      <button data-go="list">📋 曲目表</button>
+      <button data-go="help">❓ 怎麼帶</button>
+      <button id="local">📁 本機音樂</button>
+      <button id="atest">🔧 音訊測試</button>
+      <button id="restart">↺ 重來</button>
+    </div>
+  </div>
+  <div class="gmain">
+    <div class="clue solo">
+      <div id="cbText" class="hidden">
+        <div class="badges"><span class="bdg cat" id="cbCat">男聲經典</span><span class="bdg yr" id="cbYr">2003</span></div>
+        <h2 id="cbHint">周杰倫作曲、作詞，收錄在《葉惠美》。前奏一下，全場都會跟著唱。</h2>
+      </div>
+      <div class="player">
+        <button class="play" id="play">▶</button>
+        <div class="plabel" id="plabel">已暫停</div>
+        <div class="pbar"><i id="pbar" style="width: 0px;"></i></div>
+        <div class="popts">
+          <button class="pchip on" data-sec="15">前 15 秒</button>
+          <button class="pchip" data-sec="30">整段 30 秒</button>
+          <button class="pchip" id="again">↻ 再播一次</button>
+        </div>
+        <div class="vol"><span>🔈</span><input type="range" id="vol" min="0" max="100" value="85"><span>🔊</span></div>
+        <div class="pnote" id="pnote">請按上面的「📁 本機音樂」選檔，或「🔧 音訊測試」看網路卡在哪。</div>
+      </div>
+    </div>
+    <div class="gside">
+      <div class="phold" id="phold">
+        <div class="em">🎧</div>
+        <div class="t1">先播前奏<br>讓大家自由喊出歌名</div>
+        <div class="t2">猜不出來，再按下面的「💡 給提示」<br>一次給一點，不要一下子講完</div>
+        <button class="btn shout" id="shout">🙌 有人喊對了！</button>
+      </div>
+      <div class="opts hidden" id="opts"><button class="opt" data-t="晴天">晴天</button><button class="opt" data-t="倒帶">倒帶</button><button class="opt" data-t="知足">知足</button><button class="opt" data-t="小情歌">小情歌</button></div>
+      <div class="grow">
+        <button class="btn hint" id="hint">💡 給提示①：四個選項</button>
+        <button class="btn ghost" id="show">公布答案</button>
+        <button class="btn" id="next">下一題 ▶</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal hidden" id="modal">
+  <div class="mcard">
+    <button class="mclose" id="mclose" title="關閉">✕</button>
+    <div class="mtop">
+      <div class="mres" id="rres"></div>
+      <h2 id="rname"></h2>
+      <div class="sub" id="rsub"></div>
+    </div>
+    <div class="mbody">
+      <ul class="feat" id="rfeat"></ul>
+      <div class="talk"><b>💬 一起聊聊</b><p id="rq"></p></div>
+      <div class="search" id="rsearch"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn ghost" id="mclose2">關閉</button>
+      <button class="btn" id="mnext">下一題 ▶</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal hidden" id="fmodal">
+  <div class="mcard">
+    <button class="mclose" id="fclose">✕</button>
+    <div class="mtop"><h2>📁 用本機音樂檔</h2>
+      <div class="sub">連不到網路、或場域擋掉外部連線時使用。檔案只在這台電腦讀取，不會上傳。</div></div>
+    <div class="mbody">
+      <div class="filebox">
+        <p style="margin:0 0 10px;font-weight:700">選擇你電腦裡的音樂檔（可一次多選）</p>
+        <input type="file" id="fpick" accept="audio/*" multiple="">
+        <p style="margin:10px 0 0;font-size:14px;color:var(--muted)">
+          檔名只要<b>包含歌名</b>就會自動對上，例如「01 晴天.mp3」「晴天-周杰倫.m4a」。</p>
+      </div>
+      <div class="matchlist" id="matchlist"></div>
+    </div>
+    <div class="mfoot"><button class="btn" id="fdone">完成</button></div>
+  </div>
+</div>
+
+<div class="page hidden" id="v-list">
+  <div class="topbar">
+    <button class="tab" data-go="game">🎵 回到遊戲</button>
+    <button class="tab on" data-go="list">📋 曲目表</button>
+    <button class="tab" data-go="help">❓ 怎麼帶</button>
+  </div>
+  <div class="note">備課用。實際出題順序每次都會重新洗牌。「試聽」是遊戲裡用的 30 秒片段，「完整版」會開新分頁到 YouTube。</div>
+  <table id="tbl"><tbody><tr><th>#</th><th>歌名</th><th>原唱／唱紅</th><th>年代</th><th>類別</th><th>試聽</th><th>完整版</th></tr><tr><td>1</td><td><b>晴天</b></td><td>周杰倫</td><td>2003</td><td>男聲經典</td>
+   <td><button class="sbtn s-p" data-pv="535824738">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="https://www.youtube.com/results?search_query=%E6%99%B4%E5%A4%A9%20%E5%91%A8%E6%9D%B0%E5%80%AB" target="_blank" rel="noopener">▶ YouTube</a></td></tr><tr><td>2</td><td><b>七里香</b></td><td>周杰倫</td><td>2004</td><td>男聲經典</td>
+   <td><button class="sbtn s-p" data-pv="536115195">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="https://www.youtube.com/results?search_query=%E4%B8%83%E9%87%8C%E9%A6%99%20%E5%91%A8%E6%9D%B0%E5%80%AB" target="_blank" rel="noopener">▶ YouTube</a></td></tr><tr><td>3</td><td><b>青花瓷</b></td><td>周杰倫</td><td>2007</td><td>男聲經典</td>
+   <td><button class="sbtn s-p" data-pv="536030695">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="https://www.youtube.com/results?search_query=%E9%9D%92%E8%8A%B1%E7%93%B7%20%E5%91%A8%E6%9D%B0%E5%80%AB" target="_blank" rel="noopener">▶ YouTube</a></td></tr><tr><td>4</td><td><b>告白氣球</b></td><td>周杰倫</td><td>2016</td><td>男聲經典</td>
+   <td><button class="sbtn s-p" data-pv="1118757877">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="https://www.youtube.com/results?search_query=%E5%91%8A%E7%99%BD%E6%B0%A3%E7%90%83%20%E5%91%A8%E6%9D%B0%E5%80%AB" target="_blank" rel="noopener">▶ YouTube</a></td></tr><tr><td>5</td><td><b>江南</b></td><td>林俊傑</td><td>2004</td><td>男聲經典</td>
+   <td><button class="sbtn s-p" data-pv="1071753628">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="https://www.youtube.com/results?search_query=%E6%B1%9F%E5%8D%97%20%E6%9E%97%E4%BF%8A%E5%82%91" target="_blank" rel="noopener">▶ YouTube</a></td></tr><tr><td>6</td><td><b>童話</b></td><td>光良</td><td>2005</td><td>男聲經典</td>
+   <td><button class="sbtn s-p" data-pv="165274273">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="https://www.youtube.com/results?search_query=%E7%AB%A5%E8%A9%B1%20%E5%85%89%E8%89%AF" target="_blank" rel="noopener">▶ YouTube</a></td></tr><tr><td>7</td><td><b>勇氣</b></td><td>梁靜茹</td><td>2000</td><td>女聲經典</td>
+   <td><button class="sbtn s-p" data-pv="181204540">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="https://www.youtube.com/results?search_query=%E5%8B%87%E6%B0%A3%20%E6%A2%81%E9%9D%9C%E8%8C%B9" target="_blank" rel="noopener">▶ YouTube</a></td></tr><tr><td>8</td><td><b>小幸運</b></td><td>田馥甄</td><td>2015</td><td>女聲經典</td>
+   <td><button class="sbtn s-p" data-pv="1017697311">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="https://www.youtube.com/results?search_query=%E5%B0%8F%E5%B9%B8%E9%81%8B%20%E7%94%B0%E9%A6%A5%E7%94%84" target="_blank" rel="noopener">▶ YouTube</a></td></tr><tr><td>9</td><td><b>倒帶</b></td><td>蔡依林</td><td>2004</td><td>女聲經典</td>
+   <td><button class="sbtn s-p" data-pv="339414579">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="https://www.youtube.com/results?search_query=%E5%80%92%E5%B8%B6%20%E8%94%A1%E4%BE%9D%E6%9E%97" target="_blank" rel="noopener">▶ YouTube</a></td></tr><tr><td>10</td><td><b>日不落</b></td><td>蔡依林</td><td>2007</td><td>女聲經典</td>
+   <td><button class="sbtn s-p" data-pv="1725226209">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="https://www.youtube.com/results?search_query=%E6%97%A5%E4%B8%8D%E8%90%BD%20%E8%94%A1%E4%BE%9D%E6%9E%97" target="_blank" rel="noopener">▶ YouTube</a></td></tr><tr><td>11</td><td><b>愛你</b></td><td>王心凌</td><td>2004</td><td>女聲經典</td>
+   <td><button class="sbtn s-p" data-pv="1847591251">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="https://www.youtube.com/results?search_query=%E6%84%9B%E4%BD%A0%20%E7%8E%8B%E5%BF%83%E5%87%8C" target="_blank" rel="noopener">▶ YouTube</a></td></tr><tr><td>12</td><td><b>遇見</b></td><td>孫燕姿</td><td>2003</td><td>女聲經典</td>
+   <td><button class="sbtn s-p" data-pv="280911996">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="https://www.youtube.com/results?search_query=%E9%81%87%E8%A6%8B%20%E5%AD%AB%E7%87%95%E5%A7%BF" target="_blank" rel="noopener">▶ YouTube</a></td></tr><tr><td>13</td><td><b>綠光</b></td><td>孫燕姿</td><td>2001</td><td>女聲經典</td>
+   <td><button class="sbtn s-p" data-pv="297994309">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="https://www.youtube.com/results?search_query=%E7%B6%A0%E5%85%89%20%E5%AD%AB%E7%87%95%E5%A7%BF" target="_blank" rel="noopener">▶ YouTube</a></td></tr><tr><td>14</td><td><b>戀人未滿</b></td><td>S.H.E</td><td>2001</td><td>團體樂團</td>
+   <td><button class="sbtn s-p" data-pv="571614544">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="https://www.youtube.com/results?search_query=%E6%88%80%E4%BA%BA%E6%9C%AA%E6%BB%BF%20S.H.E" target="_blank" rel="noopener">▶ YouTube</a></td></tr><tr><td>15</td><td><b>Super Star</b></td><td>S.H.E</td><td>2003</td><td>團體樂團</td>
+   <td><button class="sbtn s-p" data-pv="551570912">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="https://www.youtube.com/results?search_query=Super%20Star%20S.H.E" target="_blank" rel="noopener">▶ YouTube</a></td></tr><tr><td>16</td><td><b>知足</b></td><td>五月天</td><td>2005</td><td>團體樂團</td>
+   <td><button class="sbtn s-p" data-pv="1081738613">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="https://www.youtube.com/results?search_query=%E7%9F%A5%E8%B6%B3%20%E4%BA%94%E6%9C%88%E5%A4%A9" target="_blank" rel="noopener">▶ YouTube</a></td></tr><tr><td>17</td><td><b>倔強</b></td><td>五月天</td><td>2004</td><td>團體樂團</td>
+   <td><button class="sbtn s-p" data-pv="183919743">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="https://www.youtube.com/results?search_query=%E5%80%94%E5%BC%B7%20%E4%BA%94%E6%9C%88%E5%A4%A9" target="_blank" rel="noopener">▶ YouTube</a></td></tr><tr><td>18</td><td><b>突然好想你</b></td><td>五月天</td><td>2008</td><td>團體樂團</td>
+   <td><button class="sbtn s-p" data-pv="1081381266">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="https://www.youtube.com/results?search_query=%E7%AA%81%E7%84%B6%E5%A5%BD%E6%83%B3%E4%BD%A0%20%E4%BA%94%E6%9C%88%E5%A4%A9" target="_blank" rel="noopener">▶ YouTube</a></td></tr><tr><td>19</td><td><b>小情歌</b></td><td>蘇打綠</td><td>2006</td><td>團體樂團</td>
+   <td><button class="sbtn s-p" data-pv="1461046348">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="https://www.youtube.com/results?search_query=%E5%B0%8F%E6%83%85%E6%AD%8C%20%E8%98%87%E6%89%93%E7%B6%A0" target="_blank" rel="noopener">▶ YouTube</a></td></tr><tr><td>20</td><td><b>死了都要愛</b></td><td>信樂團</td><td>2002</td><td>團體樂團</td>
+   <td><button class="sbtn s-p" data-pv="820255338">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="https://www.youtube.com/results?search_query=%E6%AD%BB%E4%BA%86%E9%83%BD%E8%A6%81%E6%84%9B%20%E4%BF%A1%E6%A8%82%E5%9C%98" target="_blank" rel="noopener">▶ YouTube</a></td></tr></tbody></table>
+</div>
+
+<div class="page hidden" id="v-help">
+  <div class="topbar">
+    <button class="tab" data-go="game">🎵 回到遊戲</button>
+    <button class="tab" data-go="list">📋 曲目表</button>
+    <button class="tab on" data-go="help">❓ 怎麼帶</button>
+  </div>
+  <div class="note"><b>設備：</b>一台電腦或平板，接投影／電視＋喇叭，音量開到全場聽得清楚。<b>不用手機、不用另外開 YouTube</b>，按畫面上那顆大橘色按鈕就會出聲。</div>
+  <h3>一題的流程（約 3～5 分鐘）</h3>
+  <ol>
+    <li><b>先播，不要先講。</b>畫面一開始只有播放鍵，沒有選項也沒有文字線索。按下大按鈕播前奏（預設 15 秒），讓大家自由喊出歌名——這一步的回憶效果最好。</li>
+    <li>猜不出來就按「↻ 再播一次」，或切成「整段 30 秒」多聽一點。</li>
+    <li>還是想不起來，按「💡 給提示①」出現<b>四個選項</b>，變成四選一。</li>
+    <li>再卡住，按「💡 給提示②」才出現<b>年代和背景文字</b>。一次給一點，不要一下子講完。</li>
+    <li>如果在還沒給選項時就有人喊對，按綠色的「🙌 有人喊對了！」——會記一分，並給一個「只聽前奏就猜到」的徽章。</li>
+    <li>有選項之後，請大家舉手或直接喊。人多可以分兩組計分。</li>
+    <li>按下答案，跳出視窗公布：原唱、年代、三個小知識。</li>
+    <li>唸出「💬 一起聊聊」那句，把話丟出去，讓大家自己接下去講。</li>
+    <li>聊得起來就按「▶ 播完整版」放 YouTube 一起唱，聊不起來就下一題。</li>
+  </ol>
+  <h3>幾個實務提醒</h3>
+  <ul>
+    <li><b>提示能不給就不給。</b>只聽前奏就想起來的那種反應，是這個活動最有價值的一刻；一給選項就變成送分題了。答對時如果沒用到文字線索，畫面會給一個小徽章。</li>
+    <li><b>不用二十題全跑完。</b>一場團康（約 1 小時），跑 8～10 題、每題聊透，比趕完二十題有用。</li>
+    <li><b>猜完一定要放來唱。</b>猜對的成就感加上大合唱，氣氛才會整個嗨起來。</li>
+    <li><b>坐得遠的朋友</b>坐前面，音量大但不要爆音，前奏可以多播兩三次。</li>
+    <li><b>有人答錯不要急著糾正，先笑完再問</b>，先問「你為什麼覺得是這首？」通常會帶出一段故事。</li>
+    <li><b>沒聲音的時候</b>先按上面的「🔧 音訊測試」，它會一步一步告訴你卡在哪：瀏覽器、網路、下載、解碼、還是送到喇叭。全部打勾卻還是沒聲音，就是電腦端的音量、靜音、輸出裝置（有沒有選到投影機或藍牙喇叭），或這個分頁被瀏覽器靜音了。</li>
+    <li><b>音量</b>用播放鍵下面那條拉桿調，跟電腦本身的音量是分開的。</li>
+    <li>試聽片段來自 Apple 公開的音樂資料庫，需要連網。公開場合播放音樂涉及公播權，建議使用場域已取得的授權來源，或以短片段教學使用為原則。</li>
+  </ul>
+  <h3>鍵盤操作（拿簡報筆站著帶）</h3>
+  <ul>
+    <li><b>P</b>：播放／暫停前奏</li>
+    <li><b>H</b>：給下一層提示</li>
+    <li><b>1 2 3 4</b>：選答案</li>
+    <li><b>Enter / 空白鍵</b>：公布答案，再按一次跳下一題</li>
+    <li><b>Esc</b>：關掉彈出視窗</li>
+  </ul>
+</div>
+
+<script>
+const CATS={A:"男聲經典",B:"女聲經典",C:"團體樂團"};
+const SONGS=[
+{t:"晴天",id:"535824738",ver:"周杰倫 原唱",s:"周杰倫",y:"2003",c:"A",
+ hint:"收錄在《葉惠美》專輯，前奏的吉他一響全場都會唱，是畢業季必播歌。",
+ f:["2003 年專輯《葉惠美》主打，周杰倫作曲、作詞","前奏吉他一響，KTV 整間包廂都會跟著唱","MV 在淡水取景，講校園裡來不及說出口的喜歡"],
+ q:"你的學生時代，有沒有一首一聽前奏就想到某個人的歌？"},
+{t:"七里香",id:"536115195",ver:"周杰倫 原唱",s:"周杰倫",y:"2004",c:"A",
+ hint:"同名專輯主打，方文山寫的詩意歌詞，秋天加上七里香的花香。",
+ f:["2004 年同名專輯《七里香》主打，周杰倫作曲、方文山作詞","歌名真的是一種花：七里香，秋天開花香氣很濃","那年周杰倫橫掃各大頒獎典禮，這首是巡演必唱曲"],
+ q:"方文山的歌詞，你最喜歡哪一句？"},
+{t:"青花瓷",id:"536030695",ver:"周杰倫 原唱",s:"周杰倫",y:"2007",c:"A",
+ hint:"中國風代表作，歌詞有青花瓷、宣紙、仕女圖，拿下金曲獎年度歌曲。",
+ f:["2007 年專輯《我很忙》主打，方文山作詞","拿下第 19 屆金曲獎年度歌曲獎","把青花瓷、宣紙、楷書、仕女圖全寫進一首歌裡"],
+ q:"中國風的歌，你還會唱哪一首？"},
+{t:"告白氣球",id:"1118757877",ver:"周杰倫 原唱",s:"周杰倫",y:"2016",c:"A",
+ hint:"寫給女兒的甜蜜情歌，MV 在巴黎拍，婚禮和畢業告白超常被點播。",
+ f:["2016 年專輯《周杰倫的床邊故事》主打","MV 遠赴巴黎取景，塞納河畔告白畫面超經典","婚禮、畢業告白場合點播率最高的一首"],
+ q:"如果要告白，你會選這首還是別首？"},
+{t:"江南",id:"1071753628",ver:"林俊傑 原唱",s:"林俊傑",y:"2004",c:"A",
+ hint:"林俊傑的成名曲，中國風加 R&B，副歌圈圈圓圓圈圈人人都會。",
+ f:["2004 年專輯《第二天堂》主打，林俊傑作曲","靠這首歌拿下金曲獎最佳新人，一炮而紅","副歌圈圈圓圓圈圈是 KTV 大合唱段落"],
+ q:"林俊傑和周杰倫，你站哪一邊？"},
+{t:"童話",id:"165274273",ver:"光良 原唱",s:"光良",y:"2005",c:"A",
+ hint:"光良最紅的一首，鋼琴前奏一出就知道，KTV 哭腔必點。",
+ f:["2005 年同名專輯《童話》主打，光良作曲、作詞","全亞洲銷量破百萬張，被翻唱成多國語言","光良原本是無印良品的一員，單飛後靠這首大翻紅"],
+ q:"有沒有哪首歌是你失戀時單曲循環的？"},
+{t:"勇氣",id:"181204540",ver:"梁靜茹 原唱",s:"梁靜茹",y:"2000",c:"B",
+ hint:"梁靜茹的代表作，唱出告白需要的勇氣，畢業和表白必唱。",
+ f:["2000 年專輯《勇氣》主打，光良作曲","這首歌讓梁靜茹坐穩情歌天后位置","KTV 告白前壯膽專用曲"],
+ q:"你做過最需要勇氣的一件事是什麼？"},
+{t:"小幸運",id:"1017697311",ver:"田馥甄 原唱",s:"田馥甄",y:"2015",c:"B",
+ hint:"電影《我的少女時代》主題曲，校園青春加初戀，全台大合唱。",
+ f:["2015 年電影《我的少女時代》主題曲","JerryC 作曲，徐世珍、吳輝福作詞，田馥甄演唱","入圍金馬獎最佳原創電影歌曲，點閱破億"],
+ q:"你的青春裡，有沒有一個徐太宇或林真心？"},
+{t:"倒帶",id:"339414579",ver:"蔡依林 原唱",s:"蔡依林",y:"2004",c:"B",
+ hint:"蔡依林轉型代表作，終於看開愛回不來，全場都會背。",
+ f:["2004 年專輯《城堡》主打，陶喆作曲、作詞","MV 拍成穿越小劇場，當年紅到不行","是蔡依林從少男殺手轉型實力派的關鍵歌"],
+ q:"如果人生可以倒帶，你最想回到哪一天？"},
+{t:"日不落",id:"1725226209",ver:"蔡依林 原唱",s:"蔡依林",y:"2007",c:"B",
+ hint:"翻唱自歐洲舞曲，蔡依林招牌旋轉舞步，尾牙和迎新嗨歌必備。",
+ f:["2007 年專輯《特務J》主打，原曲改編自 BWO 的 Sunshine in the Rain","招牌旋轉舞讓全台跟著轉","尾牙、迎新嗨歌排行榜常勝軍"],
+ q:"你跳過最嗨的一次舞是什麼時候？"},
+{t:"愛你",id:"1847591251",ver:"王心凌 原唱",s:"王心凌",y:"2004",c:"B",
+ hint:"王心凌甜心教主成名曲，近年因為浪姐節目又爆紅一次。",
+ f:["2004 年同名專輯《愛你》主打","甜美舞曲加可愛舞步，讓王心凌封號甜心教主","2022 年《乘風破浪的姐姐》初舞台再唱，全網回憶殺"],
+ q:"甜心教主和舞孃蔡依林，你 pick 誰？"},
+{t:"遇見",id:"280911996",ver:"孫燕姿 原唱",s:"孫燕姿",y:"2003",c:"B",
+ hint:"電影《向左走向右走》主題曲，我遇見誰會有怎樣的對白。",
+ f:["2003 年電影《向左走向右走》主題曲","林一峰作曲，林秋離、鄞昌隆作詞，孫燕姿演唱","是孫燕姿傳唱度最高的情歌之一"],
+ q:"你相信遇見是緣分還是選擇？"},
+{t:"綠光",id:"297994309",ver:"孫燕姿 原唱",s:"孫燕姿",y:"2001",c:"B",
+ hint:"孫燕姿最嗨的一首，前奏一下就要跳起來，期待著一個幸運和一個衝擊。",
+ f:["2001 年專輯《風箏》主打","跟平常的抒情燕姿完全不同，是電音舞曲","演唱會一唱這首，全場直接站起來"],
+ q:"你的提神歌是哪一首？"},
+{t:"戀人未滿",id:"571614544",ver:"S.H.E 原唱",s:"S.H.E",y:"2001",c:"C",
+ hint:"S.H.E 出道曲，友達以上、戀人未滿這句話就是從這來的。",
+ f:["2001 年專輯《女生宿舍》主打，S.H.E 出道曲","原曲改編自 Destiny's Child 的 Brown Eyes","友達以上、戀人未滿這句話就是被這首歌帶紅的"],
+ q:"你有過戀人未滿的經驗嗎？"},
+{t:"Super Star",id:"551570912",ver:"S.H.E 原唱",s:"S.H.E",y:"2003",c:"C",
+ hint:"S.H.E 最炸的一首，你是電、你是光，運動會和營隊必播。",
+ f:["2003 年同名專輯《Super Star》主打","營隊、運動會、迎新晚會的炒氣氛神曲","施人誠填詞，你是電、你是光全場會唱"],
+ q:"S.H.E 三個人你最喜歡誰？"},
+{t:"知足",id:"1081738613",ver:"五月天 原唱",s:"五月天",y:"2005",c:"C",
+ hint:"五月天最催淚的一首，畢業典禮播到全場哭，當一陣風吹來風箏飛上天空。",
+ f:["2005 年發行，阿信詞曲","畢業、送舊場合必播曲","五月天演唱會全場大合唱前三名"],
+ q:"畢業那天你哭了嗎？"},
+{t:"倔強",id:"183919743",ver:"五月天 原唱",s:"五月天",y:"2004",c:"C",
+ hint:"五月天最熱血的一首，我和我最後的倔強，考試比賽前必聽。",
+ f:["2004 年專輯《神的孩子都在跳舞》，阿信詞曲","寫給不服輸的年輕人","學測、比賽、社團成發前的打氣神曲"],
+ q:"你最倔強的一次是為了什麼？"},
+{t:"突然好想你",id:"1081381266",ver:"五月天 原唱",s:"五月天",y:"2008",c:"C",
+ hint:"五月天最會唱哭人的情歌，最怕空氣突然安靜，下一句全場接唱。",
+ f:["2008 年專輯《後青春期的詩》，阿信詞曲","最怕空氣突然安靜是全台都會接的下一句","KTV 深夜場眼淚保證班"],
+ q:"你會在什麼時候突然好想一個人？"},
+{t:"小情歌",id:"1461046348",ver:"蘇打綠 原唱",s:"蘇打綠",y:"2006",c:"C",
+ hint:"蘇打綠傳唱度最高的一首，吳青峰的嗓音加簡單吉他，表白必用。",
+ f:["2006 年專輯《小宇宙》主打，吳青峰詞曲","編曲簡單卻超耐聽，是吉他新手必練曲","蘇打綠靠這首從獨立圈紅到主流"],
+ q:"你心中最適合告白的歌是哪首？"},
+{t:"死了都要愛",id:"820255338",ver:"信樂團 原唱",s:"信樂團",y:"2002",c:"C",
+ hint:"KTV 最高音挑戰曲，死了都要愛飆不上去會斷氣，全場等你破音。",
+ f:["2002 年信樂團同名專輯主打，姚若龍作詞、覃楨作曲","副歌連續高音，是 KTV 玩命挑戰曲","主唱阿信靠這首封高音王"],
+ q:"你敢在 KTV 挑戰這首嗎？最高飆到哪？"}
+];
+
+const $=s=>document.querySelector(s);
+const enc=encodeURIComponent;
+const artistOf=s=>s.s.replace(/[／/].*$/,"").replace(/原唱|唱紅|演唱版/g,"").trim();
+const ytFull =s=>"https://www.youtube.com/results?search_query="+enc(s.t+" "+artistOf(s));
+const gLyric =s=>"https://www.google.com/search?q="+enc(s.t+" 歌詞");
+const gImg   =s=>"https://www.google.com/search?tbm=isch&q="+enc(artistOf(s));
+
+/* ================= 音訊引擎（Web Audio） =================
+   不用 <audio> 標籤。Apple 的試聽檔回傳的 Content-Type 是 audio/x-m4p，
+   有些瀏覽器的媒體管線不認得這個型別會卡住不出聲；改成自己抓位元組、
+   自己解碼、自己送到喇叭，就繞開這個問題。                        */
+let ctx=null, gainNode=null, srcNode=null, buffers={}, previews={};
+let limit=15, volume=0.85, playingId=null, raf=null, startAt=0;
+
+function ensureCtx(){
+  if(!ctx){
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)throw new Error("這個瀏覽器不支援 Web Audio");
+    ctx=new AC();
+    gainNode=ctx.createGain(); gainNode.gain.value=volume; gainNode.connect(ctx.destination);
+  }
+  if(ctx.state==="suspended")return ctx.resume().then(()=>ctx);
+  return Promise.resolve(ctx);
+}
+let lastNetErr="";
+function jsonp(url,ms){
+  return new Promise((res,rej)=>{
+    const cb="itcb"+Math.random().toString(36).slice(2); let done=false;
+    window[cb]=d=>{done=true;res(d);try{delete window[cb];sc.remove();}catch(e){}};
+    const sc=document.createElement("script");
+    sc.src=url+"&callback="+cb;
+    sc.onerror=()=>{if(!done){done=true;rej(new Error("JSONP 被擋住"));}};
+    document.head.appendChild(sc);
+    setTimeout(()=>{if(!done){done=true;rej(new Error("JSONP 逾時"));}},ms||9000);
+  });
+}
+async function loadPreviews(){
+  const base="https://itunes.apple.com/lookup?id="+SONGS.map(s=>s.id).join(",")+"&country=TW&entity=song&limit=200";
+  let d=null;
+  try{
+    const r=await fetch(base);
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    d=await r.json();
+  }catch(e1){
+    lastNetErr="fetch: "+e1.name+" / "+e1.message;
+    try{ d=await jsonp(base); lastNetErr+="　→ 改用 JSONP 成功"; }
+    catch(e2){ lastNetErr+="；JSONP: "+e2.message; throw new Error(lastNetErr); }
+  }
+  (d.results||[]).forEach(x=>{ if(x.previewUrl)previews[String(x.trackId)]=x.previewUrl; });
+  return Object.keys(previews).length;
+}
+const localFiles={};
+const hasAudio=s=>!!(localFiles[s.id]||previews[s.id]);
+async function getBuffer(song){
+  if(buffers[song.id])return buffers[song.id];
+  let ab;
+  if(localFiles[song.id]){
+    ab=await localFiles[song.id].arrayBuffer();
+  }else{
+    const url=previews[song.id];
+    if(!url)throw new Error("沒有這首的音檔");
+    ab=await (await fetch(url)).arrayBuffer();
+  }
+  await ensureCtx();
+  const buf=await new Promise((res,rej)=>{
+    const p=ctx.decodeAudioData(ab.slice(0),res,rej);
+    if(p&&p.then)p.then(res,rej);
+  });
+  buffers[song.id]=buf;
+  return buf;
+}
+function stopAudio(){
+  if(srcNode){ try{srcNode.stop();}catch(e){} try{srcNode.disconnect();}catch(e){} srcNode=null; }
+  if(raf){cancelAnimationFrame(raf);raf=null;}
+  playingId=null;
+  const b=$("#play"); if(b){b.classList.remove("on");b.textContent="▶";}
+  const pb=$("#pbar"); if(pb)pb.style.width="0";
+}
+async function playSong(song,ui){
+  if(playingId===song.id){ stopAudio(); if(ui)$("#plabel").textContent="已暫停"; return; }
+  stopAudio();
+  try{
+    await ensureCtx();
+    if(ui&&!buffers[song.id])$("#plabel").textContent="載入中…";
+    const buf=await getBuffer(song);
+    srcNode=ctx.createBufferSource();
+    srcNode.buffer=buf; srcNode.connect(gainNode);
+    startAt=ctx.currentTime; playingId=song.id;
+    srcNode.start(0);
+    srcNode.onended=()=>{ if(playingId===song.id){ stopAudio(); if(ui)$("#plabel").textContent="播完了，可以再播一次"; } };
+    if(ui){ $("#play").classList.add("on"); $("#play").textContent="⏸"; $("#plabel").textContent="播放中…"; }
+    const step=()=>{
+      if(playingId!==song.id)return;
+      const el=ctx.currentTime-startAt;
+      if(ui)$("#pbar").style.width=Math.min(el/limit,1)*100+"%";
+      if(el>=limit){ stopAudio(); if(ui)$("#plabel").textContent="播完了，可以再播一次"; return; }
+      raf=requestAnimationFrame(step);
+    };
+    raf=requestAnimationFrame(step);
+  }catch(e){
+    stopAudio();
+    if(ui){
+      $("#plabel").textContent="播不出來";
+      $("#pnote").innerHTML=`（${e.message}）請按上面的「🔧 音訊測試」看是哪一步卡住，
+        或改用 <a href="${ytFull(song)}" target="_blank" rel="noopener">YouTube</a>（會看到歌名）`;
+    }
+  }
+}
+$("#play").onclick=()=>{ if(cur)playSong(cur,true); };
+$("#again").onclick=()=>{ if(cur){stopAudio();playSong(cur,true);} };
+document.querySelectorAll(".pchip[data-sec]").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".pchip[data-sec]").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on"); limit=+b.dataset.sec;
+});
+$("#vol").oninput=e=>{ volume=e.target.value/100; if(gainNode)gainNode.gain.value=volume; };
+
+/* ================= 音訊自我檢測 ================= */
+async function audioTest(){
+  const L=[];
+  const line=(ok,txt)=>L.push(`<span class="${ok?'ok':'no'}">${ok?'✔':'✖'}</span> ${txt}`);
+  openInfo("🔧 音訊測試","檢測中，請稍候…","");
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    line(!!AC,"瀏覽器支援 Web Audio："+(AC?"是":"否（請改用 Chrome 或 Edge）"));
+    if(!AC)throw 0;
+    await ensureCtx();
+    line(ctx.state==="running","音訊裝置狀態："+ctx.state+"（running 才正常）");
+    const framed=window.self!==window.top;
+    line(!framed,"開啟方式："+(framed
+      ? "在別的頁面的內嵌視窗裡（例如對話視窗的預覽）→ 外部連線會被擋掉，請下載檔案後用 Chrome／Edge 直接開啟"
+      : location.protocol+"// 直接開啟，正常"));
+    let n=Object.keys(previews).length, err="";
+    if(!n){ try{ n=await loadPreviews(); }catch(e){ err=e.message||String(e); } }
+    line(n>0,"連線 Apple 音樂資料庫："+(n>0?`成功，取得 ${n} / ${SONGS.length} 首`:"失敗"));
+    if(!n){
+      L.push(`　　技術訊息：${err||lastNetErr||"未知"}`);
+      L.push(framed
+        ? "　　<b>最可能的原因：你正在對話視窗的預覽裡看這個網頁。</b>請按檔案卡片上的下載，存到電腦後用 Chrome 或 Edge 開啟。"
+        : "　　可能是網路不通、或單位的防火牆擋掉 itunes.apple.com。改用「📁 本機音樂」選你自己的音樂檔，就完全不需要網路。");
+      throw 0;
+    }
+    const song=cur||SONGS[0];
+    const ab=await (await fetch(previews[song.id])).arrayBuffer();
+    line(ab.byteLength>1000,`下載試聽檔：${Math.round(ab.byteLength/1024)} KB`);
+    const buf=await new Promise((res,rej)=>{const p=ctx.decodeAudioData(ab.slice(0),res,rej);if(p&&p.then)p.then(res,rej);});
+    line(buf.duration>1,`解碼音訊：${buf.duration.toFixed(1)} 秒、${buf.numberOfChannels} 聲道`);
+    const an=ctx.createAnalyser(); an.fftSize=2048;
+    const g=ctx.createGain(); g.gain.value=volume;
+    const sn=ctx.createBufferSource(); sn.buffer=buf;
+    sn.connect(an); an.connect(g); g.connect(ctx.destination); sn.start(0);
+    await new Promise(r=>setTimeout(r,1600));
+    const arr=new Float32Array(an.fftSize); an.getFloatTimeDomainData(arr);
+    let peak=0; for(const v of arr)peak=Math.max(peak,Math.abs(v));
+    sn.stop(); sn.disconnect();
+    line(peak>0.001,`送出訊號強度：${peak.toFixed(3)}（大於 0 表示聲音真的有送到喇叭）`);
+    const tail = peak>0.001
+      ? "以上全部通過，剛才那 1.6 秒你應該有聽到聲音。<br><b>如果還是沒聲音，問題在裝置端：</b>檢查電腦音量、是否靜音、輸出裝置是不是選到投影機／藍牙喇叭、或分頁被瀏覽器靜音（分頁上的喇叭圖示）。"
+      : "訊號沒有送出，請把結果截圖給我。";
+    openInfo("🔧 音訊測試",L.join("<br>"),tail);
+  }catch(e){
+    openInfo("🔧 音訊測試",L.join("<br>"),"檢測中斷"+(e&&e.message?"："+e.message:"")+"。請把這個畫面截圖給我。");
+  }
+}
+$("#atest").onclick=audioTest;
+
+/* ---- 本機音樂檔 ---- */
+const norm=x=>x.toLowerCase().replace(/[\s_\-（）()【】\[\]．.·、，,]/g,"");
+$("#local").onclick=()=>{ stopAudio(); $("#fmodal").classList.remove("hidden"); renderMatch(); };
+$("#fclose").onclick=()=>$("#fmodal").classList.add("hidden");
+$("#fdone").onclick=()=>{ $("#fmodal").classList.add("hidden"); if(cur)nextQ0(); };
+$("#fmodal").addEventListener("click",e=>{ if(e.target.id==="fmodal")$("#fmodal").classList.add("hidden"); });
+function nextQ0(){ const keep=idx; idx=keep-1; nextQ(); }   // 重畫目前這題的播放狀態
+$("#fpick").onchange=e=>{
+  for(const f of e.target.files){
+    const nf=norm(f.name);
+    const hitSong=SONGS.find(s=>nf.includes(norm(s.t)));
+    if(hitSong){ localFiles[hitSong.id]=f; delete buffers[hitSong.id]; }
+  }
+  renderMatch();
+};
+function renderMatch(){
+  const done=SONGS.filter(s=>localFiles[s.id]).length;
+  $("#matchlist").innerHTML=
+    `<div style="font-weight:800;border:0">已對上 ${done} / ${SONGS.length} 首</div>`+
+    SONGS.map(s=>localFiles[s.id]
+      ? `<div class="y">✔ ${s.t} ← ${localFiles[s.id].name}</div>`
+      : `<div class="n">・${s.t}（${previews[s.id]?"用線上試聽":"還沒有音檔"}）</div>`).join("");
+}
+
+/* ================= 遊戲 ================= */
+let order=[],idx=-1,cur=null,hit=0,locked=false,finished=false,hintLv=0,clean=0;
+const shuffle=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(p=>p[1]);
+function start(){ order=shuffle(SONGS.slice()); idx=-1; hit=0; clean=0; finished=false; nextQ(); }
+function nextQ(){
+  closeModal(); stopAudio();
+  idx++;
+  if(idx>=order.length){ showDone(); return; }
+  cur=order[idx]; locked=false; hintLv=0;
+  $("#cbCat").textContent=CATS[cur.c];
+  $("#cbYr").textContent=cur.y;
+  $("#cbHint").textContent=cur.hint;
+  applyHint();
+  const ok=hasAudio(cur);
+  $("#play").disabled=!ok;
+  $("#plabel").textContent=ok?"按一下播前奏":"這首還沒有音檔";
+  $("#pnote").innerHTML=ok
+    ? (localFiles[cur.id]?"使用你自己的音樂檔播放":"播放不會顯示歌名，投影出去大家看不到答案")
+    : `請按上面的「📁 本機音樂」選檔，或「🔧 音訊測試」看網路卡在哪。`;
+  if(ok&&ctx)getBuffer(cur).catch(()=>{});
+  const nx=order[idx+1]; if(nx&&hasAudio(nx)&&ctx)setTimeout(()=>getBuffer(nx).catch(()=>{}),1500);
+  const same=shuffle(SONGS.filter(s=>s!==cur&&s.c===cur.c));
+  const other=shuffle(SONGS.filter(s=>s!==cur&&s.c!==cur.c));
+  const opts=shuffle([cur,...same.concat(other).slice(0,3)]);
+  $("#opts").innerHTML=opts.map(o=>`<button class="opt" data-t="${o.t}">${o.t}</button>`).join("");
+  updateBar();
+}
+function applyHint(){
+  $("#cbText").classList.toggle("hidden",hintLv<2);
+  document.querySelector(".clue").classList.toggle("solo",hintLv<2);
+  $("#opts").classList.toggle("hidden",hintLv<1);
+  $("#phold").classList.toggle("hidden",hintLv>=1);
+  const b=$("#hint");
+  if(hintLv===0){ b.disabled=false; b.textContent="💡 給提示①：四個選項"; }
+  else if(hintLv===1){ b.disabled=false; b.textContent="💡 給提示②：文字線索"; }
+  else { b.disabled=true; b.textContent="提示都給完了"; }
+}
+$("#hint").onclick=()=>{ if(locked||hintLv>=2)return; hintLv++; applyHint(); };
+$("#shout").onclick=()=>{                      // 有人直接喊出答案，不必先看選項
+  if(!cur||locked)return;
+  hit++; clean++;
+  hintLv=2; applyHint();
+  const b=[...$("#opts").children].find(x=>x.dataset.t===cur.t); if(b)b.classList.add("good");
+  updateBar();
+  reveal(true,0);
+};
+
+function updateBar(){
+  $("#score").textContent=`第 ${idx+1} / ${order.length} 題 · 答對 ${hit}`;
+  $("#bar").style.width=(idx/order.length*100)+"%";
+}
+function reveal(ok,usedLv){
+  locked=true; stopAudio();
+  const bonus=(ok===true&&usedLv===0)?"　🏅 只聽前奏就猜到！":(ok===true&&usedLv===1)?"　👏 沒看文字線索":"";
+  $("#rres").textContent=(ok===true?"✅ 答對了！":(ok===false?"正確答案是":"答案揭曉"))+bonus;
+  $("#rres").className="mres "+(ok===true?"ok":(ok===false?"no":""));
+  $("#rname").textContent=cur.t;
+  $("#rsub").textContent=`${cur.s} ｜ ${cur.y} ｜ ${CATS[cur.c]}　（試聽版本：${cur.ver}）`;
+  $("#rfeat").innerHTML=cur.f.map(x=>`<li>${x}</li>`).join("");
+  $("#rq").textContent=cur.q;
+  document.querySelector(".talk b").style.display="";
+  $("#rsearch").innerHTML=
+    (hasAudio(cur)?`<button class="sbtn s-p" id="replay">🔊 再聽一次</button>`:"")+
+    `<a class="sbtn s-y" href="${ytFull(cur)}" target="_blank" rel="noopener">▶ 播完整版</a>
+     <a class="sbtn s-w" href="${gLyric(cur)}" target="_blank" rel="noopener">📄 找歌詞</a>
+     <a class="sbtn s-w" href="${gImg(cur)}" target="_blank" rel="noopener">🖼 原唱照片</a>`;
+  const rp=$("#replay"); if(rp)rp.onclick=()=>playSong(cur,false);
+  $("#mnext").textContent=(idx>=order.length-1)?"看成績 ▶":"下一題 ▶";
+  $("#mnext").style.display=""; $("#mclose2").style.display="";
+  $("#modal").classList.remove("hidden");
+  $(".mbody").scrollTop=0;
+}
+function openInfo(title,html,tail){
+  stopAudio();
+  $("#rres").textContent=""; $("#rres").className="mres";
+  $("#rname").textContent=title; $("#rsub").textContent="";
+  $("#rfeat").innerHTML=`<div class="diag">${html}</div>`;
+  $("#rq").innerHTML=tail||"";
+  $("#rsearch").innerHTML="";
+  document.querySelector(".talk b").style.display="none";
+  $("#mnext").style.display="none"; $("#mclose2").style.display="";
+  $("#modal").classList.remove("hidden");
+}
+function closeModal(){ $("#modal").classList.add("hidden"); }
+const modalOpen=()=>!$("#modal").classList.contains("hidden");
+function showDone(){
+  finished=true; stopAudio();
+  const pct=Math.round(hit/order.length*100);
+  const msg=pct>=80?"太厲害了，這些歌你都熟。":pct>=50?"不錯喔，一半以上都答對了。":"沒關係，重點是有沒有聊得開心。";
+  $("#rres").textContent=""; $("#rres").className="mres";
+  $("#rname").textContent="全部完成！"; $("#rsub").textContent="";
+  $("#rfeat").innerHTML=`<div class="done"><div class="big">${hit} / ${order.length}</div>
+    <p>${msg}</p><p style="font-size:17px;color:#6B7A80">其中 ${clean} 題沒看文字線索就猜到</p></div>`;
+  $("#rq").textContent="今天這些歌裡面，哪一首最有你的青春回憶？";
+  document.querySelector(".talk b").style.display="";
+  $("#rsearch").innerHTML=""; $("#mnext").textContent="再玩一次 ↺";
+  $("#mnext").style.display=""; $("#modal").classList.remove("hidden");
+}
+$("#opts").onclick=e=>{
+  const b=e.target.closest(".opt"); if(!b||locked||!cur)return;
+  const good=b.dataset.t===cur.t;
+  const usedLv=hintLv;
+  if(good){ hit++; if(usedLv<=1)clean++; b.classList.add("good"); }
+  else{ b.classList.add("bad");
+    [...$("#opts").children].find(x=>x.dataset.t===cur.t).classList.add("good"); }
+  hintLv=2; applyHint();
+  updateBar();
+  setTimeout(()=>reveal(good,usedLv),420);
+};
+$("#show").onclick=()=>{ if(!cur||locked)return;
+  const usedLv=hintLv; hintLv=2; applyHint();
+  const b=[...$("#opts").children].find(x=>x.dataset.t===cur.t); if(b)b.classList.add("good");
+  reveal(null,usedLv); };
+$("#next").onclick=()=>{ finished?start():nextQ(); };
+$("#mnext").onclick=()=>{ finished?start():nextQ(); };
+$("#mclose").onclick=closeModal;
+$("#mclose2").onclick=closeModal;
+$("#restart").onclick=start;
+$("#modal").addEventListener("click",e=>{ if(e.target.id==="modal")closeModal(); });
+$("#fs").onclick=()=>{ document.fullscreenElement?document.exitFullscreen()
+  :document.documentElement.requestFullscreen().catch(()=>{}); };
+document.addEventListener("fullscreenchange",()=>{
+  $("#fs").textContent=document.fullscreenElement?"⤫ 離開全螢幕":"⛶ 全螢幕"; });
+document.addEventListener("keydown",e=>{
+  if($("#v-game").classList.contains("hidden"))return;
+  const k=(e.key||"").toLowerCase();
+  if(e.key==="Escape"&&modalOpen()){closeModal();return;}
+  if(k==="p"&&!modalOpen()){e.preventDefault(); if(cur)playSong(cur,true); return;}
+  if(k==="h"&&!modalOpen()){e.preventDefault(); $("#hint").click(); return;}
+  if(e.key==="Enter"||e.key===" "){e.preventDefault();
+    if(modalOpen()&&$("#mnext").style.display==="none"){closeModal();return;}
+    if(finished){start();return;}
+    locked?nextQ():$("#show").click(); return;}
+  if(["1","2","3","4"].includes(e.key)&&!modalOpen()&&hintLv>=1){
+    const b=$("#opts").children[+e.key-1]; if(b)b.click(); }
+});
+
+/* ================= 曲目表 ================= */
+function drawTable(){
+  $("#tbl").innerHTML="<tr><th>#</th><th>歌名</th><th>原唱／唱紅</th><th>年代</th><th>類別</th><th>試聽</th><th>完整版</th></tr>"+
+   SONGS.map((s,i)=>`<tr><td>${i+1}</td><td><b>${s.t}</b></td><td>${s.s}</td><td>${s.y}</td><td>${CATS[s.c]}</td>
+   <td><button class="sbtn s-p" data-pv="${s.id}">🔊 試聽</button></td>
+   <td><a class="sbtn s-y" href="${ytFull(s)}" target="_blank" rel="noopener">▶ YouTube</a></td></tr>`).join("");
+  $("#tbl").onclick=e=>{
+    const b=e.target.closest("[data-pv]"); if(!b)return;
+    const s=SONGS.find(x=>x.id===b.dataset.pv); if(s)playSong(s,false);
+  };
+}
+function go(v){
+  ["game","list","help"].forEach(x=>
+    document.getElementById("v-"+x).classList.toggle("hidden",x!==v));
+  document.body.classList.toggle("playing",v==="game");
+  if(v!=="game")stopAudio();
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-go]"); if(!b)return; go(b.dataset.go); });
+
+if(window.self!==window.top){
+  document.body.classList.add("hasbanner");
+  const bn=document.getElementById("banner");
+  bn.classList.remove("hidden");
+  bn.innerHTML=`⚠️ 你正在<b>對話視窗的預覽</b>裡看這個網頁，外部連線被擋住，<b>音樂放不出來</b>。
+    請按檔案卡片上的下載，存到電腦後用 Chrome 或 Edge 直接開啟。<button id="bnx">✕</button>`;
+  document.getElementById("bnx").onclick=()=>{
+    bn.classList.add("hidden"); document.body.classList.remove("hasbanner"); };
+}
+drawTable();
+start();
+loadPreviews().then(n=>{
+  if(cur){
+    const ok=!!previews[cur.id];
+    $("#play").disabled=!ok;
+    $("#plabel").textContent=ok?"按一下播前奏":"抓不到試聽檔";
+    if(!ok)$("#pnote").innerHTML=`連不到試聽資料庫，請按上面的「🔧 音訊測試」看看是哪一步卡住。`;
+  }
+}).catch(()=>{
+  $("#play").disabled=!hasAudio(cur||SONGS[0]);
+  $("#plabel").textContent="連不到線上試聽";
+  $("#pnote").innerHTML=(window.self!==window.top)
+    ? `你在對話視窗的預覽裡，外部連線被擋住。請<b>下載後用 Chrome 開啟</b>。`
+    : `按「🔧 音訊測試」看卡在哪，或用「📁 本機音樂」選自己的音樂檔（完全不需要網路）。`;
+});
+</script>
+
+</body></html>
